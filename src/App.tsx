@@ -15,6 +15,7 @@ import AIMotivator from "./AIMotivator";
 import CalendarSync from "./CalendarSync";
 import VoiceInput from "./VoiceInput";
 import TeamNotify from "./Teamnotify";
+import SimulationViz from "./SimulationViz";
 import { saveSession, loadSession, clearSession, getSessionAge, PhoenixSession } from "./sessionStore";
 import { motion, AnimatePresence } from "motion/react";
 import { auth, isConfigured as firebaseConfigured } from "./firebaseConfig";
@@ -337,6 +338,9 @@ function SimulationEngine({ data }: { data: SimulationResponse }) {
     neutral: { dot: "bg-zinc-500", text: "text-zinc-400", border: "border-zinc-700/30", bg: "bg-zinc-900/20" },
   }[type] || { dot: "bg-zinc-500", text: "text-zinc-400", border: "border-zinc-700/30", bg: "bg-zinc-900/20" });
 
+  const typesA = data.timeline_a.map((e) => e.type);
+  const typesB = data.timeline_b.map((e) => e.type);
+
   return (
     <div className="mt-6 space-y-4">
       {data.note && (
@@ -344,6 +348,33 @@ function SimulationEngine({ data }: { data: SimulationResponse }) {
           <Zap className="w-4 h-4 flex-shrink-0 mt-0.5" /><span>⚡ {data.note}</span>
         </div>
       )}
+
+      {/* ── WebGL centerpiece — two diverging futures fork from one point ── */}
+      <div className="relative bg-zinc-950/60 border border-violet-500/15 rounded-2xl overflow-hidden">
+        {/* Faint radial backdrop so the tubes have depth to sit inside, matching the ember/crisis-spine fire motif elsewhere in the app */}
+        <div
+          className="absolute inset-0 pointer-events-none"
+          style={{ background: "radial-gradient(circle at 50% 30%, rgba(249,115,22,0.10), transparent 60%)" }}
+          aria-hidden
+        />
+        <div className="relative px-4 pt-3 flex items-center justify-between">
+          <span className="text-[10px] font-mono uppercase tracking-wider text-violet-300/80">Two futures, one fork</span>
+          <div className="flex items-center gap-3 text-[9px] font-mono">
+            <span className="flex items-center gap-1 text-red-400"><span className="w-1.5 h-1.5 rounded-full bg-red-500" />Timeline A</span>
+            <span className="flex items-center gap-1 text-emerald-400"><span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />Timeline B</span>
+          </div>
+        </div>
+        <SimulationViz
+          visibleA={visibleA}
+          visibleB={visibleB}
+          totalA={data.timeline_a.length}
+          totalB={data.timeline_b.length}
+          typesA={typesA}
+          typesB={typesB}
+        />
+      </div>
+
+      {/* ── Readable detail — the actual event text behind each glowing marker ── */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Timeline A */}
         <div className="bg-zinc-950/40 border border-red-500/20 rounded-xl p-4 relative overflow-hidden">
@@ -617,8 +648,10 @@ function AgentsShowcase() {
                 onMouseLeave={() => { if (!isTouchRef.current) setActiveIdx((p) => (p === idx ? null : p)); }}
                 onTouchStart={() => { isTouchRef.current = true; }}
                 className="group relative grid grid-cols-[40px_1fr_40px] md:grid-cols-[52px_1fr_44px] gap-x-3 md:gap-x-5 py-5 md:py-7 border-b border-white/[0.06] first:border-t first:border-white/[0.06] overflow-hidden text-left w-full focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-white/30 rounded-sm"
+                style={{ "--scan-color": agent.iconColor } as React.CSSProperties}
               >
                 <div className={`absolute inset-0 transition-opacity duration-500 pointer-events-none bg-gradient-to-r ${agent.glow} to-transparent ${isActive ? "opacity-100" : "opacity-0"}`} />
+                <div className="agent-scanline" />
                 <span className="relative flex items-center gap-1.5 font-mono text-[11px] tracking-[0.12em] text-white/20 group-hover:text-white/45 transition-colors duration-300 pt-1.5 select-none">
                   <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 transition-colors duration-300 ${isActive ? "bg-current" : "bg-white/15"}`} style={isActive ? { boxShadow: `0 0 8px 1px ${agent.iconColor}`, color: agent.iconColor } : undefined} />
                   {agent.num}
@@ -903,6 +936,9 @@ function MainApp({ onBack, initialHours, firebaseUser, authLoading }: { onBack: 
   const [triageError, setTriageError] = useState<string | null>(null);
   const [survivalResult, setSurvivalResult] = useState<SurvivalResponse | null>(null);
   const [rescueResult, setRescueResult] = useState<RescueResponse | null>(null);
+  // True when Agent 4's simulator flagged the first-pass plan as too risky
+  // and the backend automatically retried triage at higher strictness.
+  const [triageSelfCorrected, setTriageSelfCorrected] = useState(false);
 
   // Agent 4
   const [simLoading, setSimLoading] = useState(false);
@@ -1118,7 +1154,7 @@ function MainApp({ onBack, initialHours, firebaseUser, authLoading }: { onBack: 
     setGoal(preset.goal); setAvailableHours(preset.availableHours); setRequiredHours(preset.requiredHours);
     setProgress(preset.progress); setFeaturesText(preset.features);
     setError(null); setIntelligence(null); setSurvivalResult(null); setTriageError(null);
-    setRescueResult(null); setSimResult(null); setSimError(null);
+    setRescueResult(null); setSimResult(null); setSimError(null); setTriageSelfCorrected(false);
   };
 
   // ── Agent 1: Diagnose ─────────────────────────
@@ -1132,7 +1168,7 @@ function MainApp({ onBack, initialHours, firebaseUser, authLoading }: { onBack: 
 
     setLoading(true); setError(null); setIntelligence(null);
     setSurvivalResult(null); setTriageError(null);
-    setRescueResult(null); setSimResult(null); setSimError(null);
+    setRescueResult(null); setSimResult(null); setSimError(null); setTriageSelfCorrected(false);
     setLoadingStepIdx(0);
 
     stepIntervalRef.current = setInterval(() => setLoadingStepIdx((p) => (p + 1) % LOADING_STEPS.length), 1200);
@@ -1155,7 +1191,7 @@ function MainApp({ onBack, initialHours, firebaseUser, authLoading }: { onBack: 
   const handleGenerateTriageAndPlan = async () => {
     if (!featuresText.trim()) { setTriageError("Please enter your feature list first."); return; }
     setTriageLoading(true); setTriageError(null); setSurvivalResult(null); setRescueResult(null);
-    setSimResult(null); setSimError(null); setTriageLoadingStepIdx(0);
+    setSimResult(null); setSimError(null); setTriageLoadingStepIdx(0); setTriageSelfCorrected(false);
 
     const interval = setInterval(() => setTriageLoadingStepIdx((p) => (p + 1) % TRIAGE_LOADING_STEPS.length), 1200);
     try {
@@ -1169,9 +1205,14 @@ function MainApp({ onBack, initialHours, firebaseUser, authLoading }: { onBack: 
         }),
       });
       if (!res.ok) { const d = await res.json().catch(() => ({})); throw new Error(d.error || `Triage error ${res.status}`); }
-      const { triage, plan } = await res.json();
+      const { triage, plan, simulation, selfCorrected } = await res.json();
       setSurvivalResult(triage);
       setRescueResult(plan);
+      setTriageSelfCorrected(Boolean(selfCorrected));
+      // The self-correction loop already ran Agent 4's simulator server-side
+      // to check the plan — if so, surface it immediately instead of making
+      // the user click "Run Simulation" again for a result we already have.
+      if (simulation && !simulation.error) setSimResult(simulation);
     } catch (err: any) {
       setTriageError(err?.message || "Failed to generate triage + rescue plan.");
     } finally {
@@ -1237,7 +1278,7 @@ function MainApp({ onBack, initialHours, firebaseUser, authLoading }: { onBack: 
                 <>
                   <div className="w-px h-4 bg-zinc-800 flex-shrink-0" />
                   <button type="button"
-                    onClick={() => { clearSession(); setIntelligence(null); setSurvivalResult(null); setRescueResult(null); setSimResult(null); setGoal(""); setFeaturesText(""); setProgress(0); setAvailableHours(initialHours ?? ""); setRequiredHours(""); }}
+                    onClick={() => { clearSession(); setIntelligence(null); setSurvivalResult(null); setRescueResult(null); setSimResult(null); setTriageSelfCorrected(false); setGoal(""); setFeaturesText(""); setProgress(0); setAvailableHours(initialHours ?? ""); setRequiredHours(""); }}
                     className="text-[11px] font-mono text-zinc-600 hover:text-zinc-400 transition-colors flex items-center gap-1 flex-shrink-0">
                     <RotateCcw className="w-3 h-3" /> <span className="hidden sm:inline">New</span>
                   </button>
@@ -1647,9 +1688,17 @@ function MainApp({ onBack, initialHours, firebaseUser, authLoading }: { onBack: 
                       initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} className="border-t border-zinc-800/60 pt-5 sm:pt-6 mt-5 sm:mt-6 pl-1 sm:pl-2 space-y-5 sm:space-y-6">
 
                       {/* Triage header */}
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2 flex-wrap">
                         <Sparkles className="w-5 h-5 text-emerald-400" />
                         <h4 className="text-base font-bold text-zinc-100">Emergency Survival Architecture</h4>
+                        {triageSelfCorrected && (
+                          <span
+                            title="Agent 4 simulated the first-pass plan, flagged it as too risky, and Phoenix automatically retried triage with stricter cuts."
+                            className="flex items-center gap-1.5 text-[10px] font-mono uppercase tracking-wider text-violet-300 bg-violet-950/40 border border-violet-500/30 px-2 py-0.5 rounded-full"
+                          >
+                            <RefreshCw className="w-3 h-3" /> Self-corrected after simulation
+                          </span>
+                        )}
                       </div>
 
                       {survivalResult.note && (
