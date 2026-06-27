@@ -1,0 +1,121 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-display: 'Space Grotesk', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+}
+
+body 
+{
+  font-family: var(--font-sans);
+  background-color: #09090b; /* Zinc 950 */
+  color: #f4f4f5; /* Zinc 100 */
+}
+
+/* Custom glow animation */
+@keyframes pulseGlow {
+  0%, 100% {
+    box-shadow: 0 0 15px -3px rgba(239, 68, 68, 0.1), 0 0 6px -2px rgba(239, 68, 68, 0.05);
+  }
+  50% {
+    box-shadow: 0 0 25px 2px rgba(239, 68, 68, 0.2), 0 0 12px 0px rgba(239, 68, 68, 0.1);
+  }
+}
+
+.crisis-card-glow {
+  animation: pulseGlow 4s infinite ease-in-out;
+}
+
+/* Gentle float for mobile agent cards */
+@keyframes floatCard {
+  0%, 100% { transform: translateY(0px) rotate(var(--card-rotate, -1.5deg)); }
+  50%       { transform: translateY(-5px) rotate(var(--card-rotate, -1.5deg)); }
+}
+
+.mobile-card-float-even {
+  --card-rotate: 1.5deg;
+  animation: floatCard 5s ease-in-out infinite;
+}
+.mobile-card-float-odd {
+  --card-rotate: -1.5deg;
+  animation: floatCard 5s ease-in-out infinite;
+  animation-delay: -2.5s;
+}
+
+/* Remove number input spinner arrows */
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+input[type="number"] {
+  -moz-appearance: textfield;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Agent-specific loading visualizations
+   Each agent's "thinking" state foreshadows the shape of its
+   output (risk bars, keep/cut split, diverging timelines)
+   instead of a generic spinner, repeated 3-4x per demo run.
+   ════════════════════════════════════════════════════════════ */
+
+/* Agent 1 — risk dimension bars rising and settling */
+@keyframes riskBarRise {
+  0%   { transform: scaleY(0.08); opacity: 0.4; }
+  55%  { transform: scaleY(1); opacity: 1; }
+  100% { transform: scaleY(0.55); opacity: 0.75; }
+}
+.risk-bar {
+  animation: riskBarRise 1.8s ease-in-out infinite;
+  transform-origin: bottom;
+}
+
+/* Agent 2+3 — feature rows sorting into keep/cut */
+@keyframes sortDrift {
+  0%, 100% { transform: translateX(0); }
+  50% { transform: translateX(var(--drift, 6px)); }
+}
+.sort-row {
+  animation: sortDrift 2.2s ease-in-out infinite;
+}
+
+/* Agent 4 — two paths diverging from a single point */
+@keyframes pathDash {
+  to { stroke-dashoffset: 0; }
+}
+.diverge-path {
+  stroke-dasharray: 4 5;
+  animation: pathDash 1.4s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .risk-bar, .sort-row, .diverge-path, .mobile-card-float-even, .mobile-card-float-odd, .crisis-card-glow, .app-ember {
+    animation: none !important;
+  }
+}
+
+/* ── App-shell ember echo ──────────────────────────────────────
+   A handful of CSS-only embers drifting up through the app shell
+   right after entering from the landing page, so the Ember field's
+   fire motif doesn't just vanish at the hard cut — it settles in
+   behind the form instead of cutting to a flat background. Cheap:
+   no WebGL, just a few absolutely-positioned divs that fade after
+   one pass and get removed from the DOM. */
+@keyframes emberDrift {
+  0%   { transform: translateY(0) translateX(0); opacity: 0; }
+  10%  { opacity: 0.5; }
+  90%  { opacity: 0.25; }
+  100% { transform: translateY(-90vh) translateX(var(--drift-x, 20px)); opacity: 0; }
+}
+.app-ember {
+  position: absolute;
+  bottom: 0;
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #FCA56A 0%, #EF4444 70%, transparent 100%);
+  animation: emberDrift linear forwards;
+  pointer-events: none;
+}
