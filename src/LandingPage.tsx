@@ -333,13 +333,15 @@ export default function LandingPage({ onEnter }: LandingPageProps) {
         </div>
 
         {/* CTA */}
-        <button ref={ctaRef} onClick={() => onEnter(deadlineHours)}
-          className="group relative overflow-hidden bg-gradient-to-r from-red-600 to-orange-500 text-white font-bold py-4 px-10 rounded-full text-sm tracking-[0.1em] uppercase shadow-2xl shadow-red-600/25 flex items-center gap-3 hover:scale-[1.03] active:scale-[0.97] transition-transform duration-200">
-          <Flame className="w-4 h-4" />
-          <span>Start My Recovery</span>
-          <span className="text-orange-200 transition-transform duration-200 group-hover:translate-x-1">→</span>
-          <span className="absolute inset-0 bg-gradient-to-r from-transparent via-white/15 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700 pointer-events-none" />
-        </button>
+        <span className="shimmer-ring inline-block rounded-full" style={{ "--ring-color": "#FFD580" } as React.CSSProperties}>
+          <button ref={ctaRef} onClick={() => onEnter(deadlineHours)}
+            className="group relative overflow-hidden bg-gradient-to-r from-red-600 to-orange-500 text-white font-bold py-4 px-10 rounded-full text-sm tracking-[0.1em] uppercase shadow-2xl shadow-red-600/25 flex items-center gap-3 hover:scale-[1.03] active:scale-[0.97] transition-transform duration-200">
+            <Flame className="w-4 h-4" />
+            <span>Start My Recovery</span>
+            <span className="text-orange-200 transition-transform duration-200 group-hover:translate-x-1">→</span>
+            <span className="absolute inset-0 bg-gradient-to-r from-transparent via-white/15 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700 pointer-events-none" />
+          </button>
+        </span>
 
         {/* Trust pills */}
         <div className="mt-4 sm:mt-5 flex flex-wrap items-center justify-center gap-4 sm:gap-5 text-[10px] font-mono text-zinc-700 tracking-wider">
