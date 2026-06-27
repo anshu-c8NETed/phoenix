@@ -1,134 +1,274 @@
-# 🔥 Phoenix — Crisis Recovery Agent
+<p align="center">
+  <img src="https://img.shields.io/badge/Google%20Cloud-Run-4285F4?style=for-the-badge&logo=googlecloud&logoColor=white" />
+  <img src="https://img.shields.io/badge/Gemini-2.5%20Flash-8E75B2?style=for-the-badge&logo=google&logoColor=white" />
+  <img src="https://img.shields.io/badge/Firebase-Firestore-FFCA28?style=for-the-badge&logo=firebase&logoColor=black" />
+  <img src="https://img.shields.io/badge/React-19-61DAFB?style=for-the-badge&logo=react&logoColor=black" />
+</p>
 
-> **Deadline Trauma Operations Center**  
-> 4 AI agents. One coordinated rescue. Built for the moments when everything is on fire.
+<h1 align="center">🔥 Phoenix — Crisis Recovery Agent</h1>
 
-**Live Demo:** https://phoenix-647479600848.us-west1.run.app
+<p align="center"><em>When planning is already impossible, Phoenix finds the version that survives.</em></p>
+
+<p align="center">
+  <strong><a href="https://phoenix-647479600848.us-west1.run.app">🚀 Live Demo</a></strong>
+</p>
 
 ---
 
-## What is Phoenix?
+## The Problem
 
-Phoenix is an AI-powered deadline crisis recovery tool. When you're hours away from a submission with too much left to build, Phoenix triages your project, cuts what doesn't matter, and hands you a minute-by-minute rescue plan — so you ship something instead of nothing.
+Imagine this.
+
+> Assignment due in **6 hours.**  
+> Hackathon submission **tonight.**  
+> Half the features **unfinished.**  
+> Team is **panicking.**
+
+Traditional productivity apps assume you still have time to plan.
+
+**Phoenix is built for the moment planning has already failed.**
+
+Instead of helping you do *everything* — Phoenix figures out what to **stop building.**  
+It rescues the smallest possible version that can still succeed.
 
 ---
 
-## How it Works
+## Why Phoenix Exists
 
-Phoenix runs a **4-agent Gemini AI pipeline**, each agent feeding the next:
+Every year, millions of students, developers, and teams miss deadlines — not because they aren't capable — but because they keep executing **impossible plans.**
+
+Phoenix acts like an **emergency incident commander.**
+
+Instead of asking *"How do I finish everything?"*  
+it asks *"What is the smallest version that still wins?"*
+
+---
+
+## Highlights
+
+- 🤖 **6 specialized AI agents** powered by Google Gemini
+- 🧠 **Multi-agent reasoning pipeline** — each agent feeds the next
+- ☁️ **Google Cloud Run** deployment via AI Studio
+- 🔥 **Firebase** Firestore persistence + Authentication
+- 📄 **PDF spec understanding** — upload your brief, Gemini extracts requirements
+- 🎙️ **Voice input** via Web Speech API
+- 📅 **Google Calendar integration** — rescue blocks become timed events
+- ⚡ **AI provider failover** — never shows a blank screen
+- 🌐 **Three.js WebGL** ember field interface
+- 💾 **Offline fallback** — works even without Firebase
+
+---
+
+## Example
+
+**Input:**
+| Field | Value |
+|---|---|
+| Goal | Hackathon web app |
+| Time Left | 7 hours |
+| Progress | 30% |
+| Features | Auth, AI Chat, Dashboard, Analytics, Payments, Landing Page |
+
+**Phoenix says:**
+
+✅ **KEEP** — Landing Page, Authentication, AI Chat  
+✕ **CUT** — Analytics, Payments, Dashboard
+
+📈 **Survival probability: 18% → 81%**
+
+⏱️ **Rescue plan:**
+- Hour 1–2: Build landing page and auth flow, skip form validation
+- Hour 3–4: Wire AI Chat to Gemini API, hardcode responses for edge cases
+- Hour 5–6: Integration smoke test, deploy to Cloud Run
+- Hour 7: Record 60s demo video as backup, submit
+
+---
+
+## The 6-Agent Pipeline
 
 ```
-User Input → Agent 1 → Agent 2 → Agent 3 → Agent 4 → Rescue Plan
+User Input
+    │
+    ▼
+┌─────────────────────┐
+│  Agent 1            │  Diagnose the crisis
+│  Crisis Diagnostics │  → project type, risk score, failure causes
+└──────────┬──────────┘
+           │
+    ▼
+┌─────────────────────┐
+│  Agent 2            │  Cut ruthlessly
+│  Survival Version   │  → keep[], cut[], survival probability
+│  Generator          │
+└──────────┬──────────┘
+           │
+    ▼
+┌─────────────────────┐
+│  Agent 3            │  Plan precisely
+│  Rescue Planner     │  → hour-by-hour blocks, critical path
+└──────────┬──────────┘
+           │
+    ▼
+┌─────────────────────┐
+│  Agent 4            │  See both futures
+│  Parallel Futures   │  → timeline A (failure) vs B (success)
+└──────────┬──────────┘
+           │
+    ▼
+┌─────────────────────────────────────┐
+│  Agent 5: Crisis Coach              │  On-demand motivation
+│  Agent 6: Team Notification         │  Slack/Email drafts
+└─────────────────────────────────────┘
+           │
+    ▼
+Calendar Sync · Live Tracker · Export · Share
 ```
 
-| Agent | Name | What it does |
-|---|---|---|
-| 1 | **Crisis Diagnostics** | Reads your goal, hours, progress, and optionally a PDF spec. Classifies project type, scores 5 risk dimensions, identifies failure causes. |
-| 2 | **Scope Optimizer** | Triages your feature list into Keep vs Cut. Calculates survival probability before and after triage. |
-| 3 | **Rescue Planner** | Generates a concrete hour-by-hour execution plan using only the kept features. Every task is specific enough to start immediately. |
-| 4 | **Outcome Simulator** | Simulates two parallel timelines — original plan vs Phoenix plan — showing exactly how each plays out. |
+---
 
-Plus two supporting agents:
+## Why AI?
 
-| Agent | Name | What it does |
-|---|---|---|
-| 5 | **AI Crisis Coach** | Real-time motivational messages personalized to your goal, risk level, and progress. |
-| 6 | **Team Notification** | Drafts a Slack or email update to your team explaining the delay and the rescue plan. |
+Phoenix **cannot be implemented using rules alone.**
+
+Every rescue plan depends on:
+- Project complexity and tech stack
+- Remaining time vs estimated work
+- Current progress percentage
+- Uploaded specification or rubric
+- Feature dependencies and demo requirements
+- Probability of successful completion under pressure
+
+Each project produces a **completely different rescue strategy.**  
+Gemini reasons over all of these variables to produce a unique execution plan — rather than following a fixed template.
+
+---
+
+## Why Multiple Agents?
+
+Instead of one giant prompt, Phoenix separates reasoning into **specialized AI agents.**  
+Each agent performs a single task before passing structured output to the next.
+
+**Benefits:**
+- Better reasoning — each agent has a focused, expert-level system prompt
+- Lower hallucination — smaller, constrained output schemas per agent
+- Explainable decisions — users see each agent's reasoning
+- Reusable components — agents can be called independently
+- Easier debugging — failures are isolated to one agent
 
 ---
 
 ## Features
 
-- **PDF Spec Upload** — attach your assignment brief or project spec and Agent 1 extracts requirements automatically
-- **Voice Input** — speak your goal and features using Web Speech API (Chrome/Edge)
-- **Google Calendar Sync** — push every rescue block as a timed calendar event with color-coding and 2-min reminders
-- **Live Execution Tracker** — check off blocks as you complete them, persisted via Firebase Firestore or localStorage fallback
-- **Export & Share** — copy as Markdown, copy for Slack, or download as `.md` file
-- **Session Persistence** — your rescue plan survives page refreshes (48-hour localStorage cache)
-- **WebGL Ember Field** — Three.js particle background that responds to urgency level
-- **Crisis Spine** — GSAP-animated connecting thread visualizing agent pipeline progress
+### 🧠 AI Agent Pipeline
+- **Agent 1 — Crisis Diagnostics:** Classifies project type (software/research/pitch/exam/etc.), scores 5 risk dimensions (Time, Scope, Complexity, Dependency, Execution), identifies top failure causes
+- **Agent 2 — Survival Version Generator:** Triages feature list into Keep vs Cut with confidence scores and implementation shortcuts for each kept feature
+- **Agent 3 — Rescue Planner:** Hour-by-hour execution blocks with risk tags (critical path / high risk / normal / buffer), specific enough to start immediately
+- **Agent 4 — Parallel Futures:** Simulates two timelines — original plan leading to failure vs Phoenix plan leading to success — with real narrative events
+- **Agent 5 — Crisis Coach:** Personalized motivation referencing your actual goal, hours, and odds. No hollow clichés.
+- **Agent 6 — Team Notification:** Drafts a Slack message or professional email explaining the delay and rescue plan to teammates
+
+### 📄 PDF Spec Upload
+Attach your assignment brief, project spec, or rubric — Gemini reads it and extracts requirements, constraints, and grading criteria automatically.
+
+### 🎙️ Voice Input
+Speak your goal and features using the Web Speech API. Works natively in Chrome and Edge — no API key needed.
+
+### 📅 Google Calendar Sync
+Push every rescue block as a timed Google Calendar event — color-coded by task type, with 2-minute popup reminders.
+
+### ✅ Live Execution Tracker
+Check off blocks as you complete them. Progress persists via Firebase Firestore (with localStorage fallback). Includes a completion celebration.
+
+### 📤 Export & Share
+- Copy as Markdown (Notion/Obsidian ready)
+- Copy for Slack/Teams
+- Download as `.md` file
+
+### 💾 Session Persistence
+Your rescue plan survives page refreshes. 48-hour cache via localStorage.
+
+---
+
+## Reliability
+
+Phoenix **never returns a blank screen** — even if every AI provider becomes unavailable.
+
+```
+Gemini 2.5 Flash
+      ↓
+Gemini 2.0 Flash
+      ↓
+Gemini 2.0 Flash Lite
+      ↓
+Groq (llama-3.3-70b-versatile)
+      ↓
+Heuristic Engine
+      ↓
+   Never Fail
+```
+
+Additional resilience features:
+- **Circuit breaker** — quota-blocked models are skipped instantly, not retried
+- **LRU response cache** (50 entries, 30-min TTL) — repeated demo runs return sub-10ms cached responses
+- **Two Gemini API keys** supported for burst capacity
 
 ---
 
 ## Tech Stack
 
 ### Frontend
-- **React 19** + **TypeScript** + **Vite**
-- **Tailwind CSS v4** for styling
-- **Framer Motion** (`motion/react`) for animations
-- **GSAP** + **Three.js** / **WebGL** for the Ember Field and Crisis Spine
+- **React 19** + **TypeScript** + **Vite 6**
+- **Tailwind CSS v4**
+- **Framer Motion** for UI transitions
+- **GSAP** + **Three.js / WebGL** — ember field particle system and Crisis Spine animation
 - **Lucide React** for icons
-- **Web Speech API** for voice input
 
 ### Backend
-- **Express.js** server with TypeScript
-- **Google Gemini API** (`gemini-2.5-flash` → `gemini-2.0-flash` → `gemini-2.0-flash-lite` waterfall)
-- **Groq API** (`llama-3.3-70b-versatile`) as fallback when Gemini rate-limits
-- **LRU response cache** (50 entries, 30-min TTL) for demo resilience
-- **Circuit breaker** — quota-blocked models skipped instantly, not retried
+- **Express.js** + **TypeScript** (compiled via esbuild)
+- **Google Gemini API** — every major AI decision. Groq exists only as a resilience fallback.
+- **Groq API** (`llama-3.3-70b-versatile`) — fallback only
+- Structured JSON output via Gemini's `responseSchema` for type-safe agent responses
 
 ### Google Cloud & Firebase
-- **Google Cloud Run** (via AI Studio) — production deployment
-- **Firebase Firestore** — checklist persistence across sessions
-- **Firebase Authentication** — anonymous auth for user sessions
-- **Google Calendar API** — OAuth 2.0 event creation
+- **Google Cloud Run** — production deployment (via AI Studio)
+- **Firebase Firestore** — checklist persistence
+- **Firebase Authentication** — anonymous user sessions
+- **Google Calendar API** — OAuth 2.0 event creation with per-type color coding
 
 ---
 
-## AI Pipeline Architecture
+## Architecture
 
 ```
-┌─────────────────────────────────────────────────────────┐
-│                     User Input                          │
-│  Goal · Hours · Progress · Features · PDF (optional)    │
-└──────────────────────┬──────────────────────────────────┘
-                       │
-              ┌────────▼────────┐
-              │   Agent 1       │  gemini-2.5-flash
-              │ Crisis Diagnose │  → project_type, risk_dimensions,
-              │                 │    tech_stack, failure_causes
-              └────────┬────────┘
-                       │
-         ┌─────────────▼──────────────┐
-         │        Agent 2             │  gemini-2.5-flash
-         │    Scope Optimizer         │  → keep[], cut[],
-         │                            │    success_chance_before/after
-         └─────────────┬──────────────┘
-                       │
-         ┌─────────────▼──────────────┐
-         │        Agent 3             │  gemini-2.5-flash
-         │    Rescue Planner          │  → hour-by-hour blocks[],
-         │                            │    critical_path, buffer_hours
-         └─────────────┬──────────────┘
-                       │
-         ┌─────────────▼──────────────┐
-         │        Agent 4             │  gemini-2.5-flash
-         │  Outcome Simulator         │  → timeline_a (failure),
-         │                            │    timeline_b (success)
-         └─────────────┬──────────────┘
-                       │
-         ┌─────────────▼──────────────┐
-         │   Supporting Agents        │
-         │  Agent 5: Crisis Coach     │  On-demand motivation
-         │  Agent 6: Team Notify      │  Slack/Email drafts
-         └────────────────────────────┘
+┌─────────────────────────────────────────────┐
+│              Client (React 19)              │
+│  Landing → Form → Agent Cards → Results     │
+│  Three.js WebGL · GSAP · Framer Motion      │
+└──────────────────┬──────────────────────────┘
+                   │ HTTP/JSON
+┌──────────────────▼──────────────────────────┐
+│           Express Server (Node 20)          │
+│                                             │
+│  /api/diagnose        → Agent 1             │
+│  /api/survival-version → Agent 2            │
+│  /api/rescue-plan     → Agent 3             │
+│  /api/simulate        → Agent 4             │
+│  /api/motivate        → Agent 5             │
+│  /api/team-notify     → Agent 6             │
+│  /api/calendar/*      → Google Calendar     │
+│                                             │
+│  LRU Cache · Circuit Breaker · Fallbacks    │
+└──────────────────┬──────────────────────────┘
+                   │
+      ┌────────────┼────────────┐
+      ▼            ▼            ▼
+  Gemini API   Groq API    Firebase
+  (primary)   (fallback)  Firestore
 ```
-
-### Reliability Layer
-```
-gemini-2.5-flash → gemini-2.0-flash → gemini-2.0-flash-lite → Groq (llama-3.3-70b) → Heuristic fallback
-```
-Phoenix never shows a blank error — every agent has a heuristic fallback that kicks in if all AI providers are unavailable.
 
 ---
 
 ## Running Locally
-
-### Prerequisites
-- Node.js 20+
-- Gemini API key (free at [aistudio.google.com](https://aistudio.google.com))
-
-### Setup
 
 ```bash
 git clone https://github.com/anshu-c8NETed/phoenix.git
@@ -136,19 +276,18 @@ cd phoenix
 npm install
 ```
 
-Create a `.env` file:
-
+Create `.env`:
 ```env
-GEMINI_API_KEY=your_gemini_api_key
-GROQ_API_KEY=your_groq_api_key          # optional fallback
+GEMINI_API_KEY=your_key_here
+GROQ_API_KEY=your_key_here        # optional
 SESSION_SECRET=any_random_string
 
 # Google Calendar (optional)
-GOOGLE_CLIENT_ID=your_client_id
-GOOGLE_CLIENT_SECRET=your_client_secret
+GOOGLE_CLIENT_ID=...
+GOOGLE_CLIENT_SECRET=...
 GOOGLE_REDIRECT_URI=http://localhost:3000/api/calendar/callback
 
-# Firebase (optional — falls back to localStorage without these)
+# Firebase (optional — falls back to localStorage)
 VITE_FIREBASE_API_KEY=...
 VITE_FIREBASE_AUTH_DOMAIN=...
 VITE_FIREBASE_PROJECT_ID=...
@@ -159,36 +298,7 @@ VITE_FIREBASE_APP_ID=...
 
 ```bash
 npm run dev
-```
-
-App runs at `http://localhost:3000`
-
----
-
-## API Endpoints
-
-| Method | Endpoint | Description |
-|---|---|---|
-| POST | `/api/diagnose` | Agent 1 — project intelligence |
-| POST | `/api/survival-version` | Agent 2 — feature triage |
-| POST | `/api/rescue-plan` | Agent 3 — hour-by-hour plan |
-| POST | `/api/simulate` | Agent 4 — outcome simulation |
-| POST | `/api/motivate` | Agent 5 — crisis coaching |
-| POST | `/api/team-notify` | Agent 6 — team notification draft |
-| POST | `/api/triage-and-plan` | Agents 2+3 in parallel |
-| GET | `/api/calendar/auth` | Google OAuth flow start |
-| POST | `/api/calendar/events` | Create calendar events |
-| GET | `/api/diag` | Diagnostics — AI key + quota status |
-| DELETE | `/api/cache` | Flush LRU cache |
-
----
-
-## Deployment
-
-Deployed on **Google Cloud Run** via AI Studio.
-
-```
-https://phoenix-647479600848.us-west1.run.app
+# → http://localhost:3000
 ```
 
 ---
@@ -198,23 +308,42 @@ https://phoenix-647479600848.us-west1.run.app
 ```
 phoenix/
 ├── src/
-│   ├── App.tsx                 # Main app shell + agent orchestration
+│   ├── App.tsx                 # Agent orchestration + state
 │   ├── LandingPage.tsx         # Hero with WebGL ember field
-│   ├── AIMotivator.tsx         # Agent 5 — crisis coach UI
+│   ├── AIMotivator.tsx         # Agent 5 UI
 │   ├── CalendarSync.tsx        # Google Calendar OAuth + sync
 │   ├── ChecklistTracker.tsx    # Live execution tracker
-│   ├── CrisisSpine.tsx         # GSAP animated pipeline visualizer
-│   ├── EmberField.ts           # Three.js WebGL particle system
-│   ├── ExportPanel.tsx         # Markdown/Slack/download export
-│   ├── Teamnotify.tsx          # Agent 6 — team notification UI
-│   ├── VoiceInput.tsx          # Web Speech API mic input
-│   ├── firebaseConfig.ts       # Firebase init with fallback
-│   ├── sessionStore.ts         # localStorage session persistence
-│   └── index.css               # Tailwind + custom animations
-├── server.ts                   # Express server + all 6 agents
-├── vite.config.ts
+│   ├── CrisisSpine.tsx         # GSAP pipeline visualizer
+│   ├── EmberField.ts           # Three.js WebGL particles
+│   ├── ExportPanel.tsx         # Export UI
+│   ├── Teamnotify.tsx          # Agent 6 UI
+│   ├── VoiceInput.tsx          # Web Speech API
+│   ├── firebaseConfig.ts       # Firebase init + fallback
+│   └── sessionStore.ts         # Session persistence
+├── server.ts                   # Express + all 6 agents
+├── Dockerfile                  # Cloud Run container
 └── package.json
 ```
+
+---
+
+## Deployment
+
+Live on **Google Cloud Run** via AI Studio:
+
+```
+https://phoenix-647479600848.us-west1.run.app
+```
+
+---
+
+## Roadmap
+
+- [ ] GitHub integration — analyze your actual codebase
+- [ ] Jira / Linear import — read existing tickets
+- [ ] Figma parsing — understand design completion state
+- [ ] Automatic progress detection from git commits
+- [ ] Team-wide rescue planning with role assignment
 
 ---
 
@@ -222,9 +351,16 @@ phoenix/
 
 - [Google Gemini API](https://ai.google.dev/) — primary AI backbone
 - [Google Cloud Run](https://cloud.google.com/run) — deployment
+- [Google AI Studio](https://aistudio.google.com/) — build + publish
 - [Firebase](https://firebase.google.com/) — auth + database
 - [Google Calendar API](https://developers.google.com/calendar) — event creation
-- [Groq](https://groq.com/) — AI fallback (llama-3.3-70b-versatile)
+- [Groq](https://groq.com/) — resilience fallback
 - [Three.js](https://threejs.org/) — WebGL ember field
 - [GSAP](https://gsap.com/) — Crisis Spine animation
 - [Framer Motion](https://www.framer.com/motion/) — UI transitions
+
+---
+
+<p align="center">
+  <em>Built for the moments when everything is on fire. 🔥</em>
+</p>
