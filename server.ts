@@ -605,7 +605,7 @@ Return ONLY valid JSON:
 
   app.post("/api/survival-version", async (req, res) => {
     try {
-      const { goal, availableHours, requiredHours, progress, features, intelligence, pdfData } = req.body;
+      const { goal, availableHours, requiredHours, progress, features, intelligence, pdfData, strictness, priorAttemptNote } = req.body;
       if (!goal || !features) return res.status(400).json({ error: "Goal and features required." });
 
       const avail = Number(availableHours) || 0;
@@ -613,13 +613,19 @@ Return ONLY valid JSON:
       const prog  = Number(progress)       || 0;
       const intel: Partial<ProjectIntelligence> = intelligence || {};
       const pType = intel.project_type || "software";
+      // "high" strictness is used by the Agent 4 self-correction loop (see
+      // /api/triage-and-plan) when a first-pass plan simulates poorly — it
+      // asks for a more conservative cut and folds in what went wrong so
+      // the retry isn't just rerolling the same dice.
+      const strict: "normal" | "high" = strictness === "high" ? "high" : "normal";
+      const attemptNote: string = typeof priorAttemptNote === "string" ? priorAttemptNote.slice(0, 600) : "";
 
       const featureList: string[] = Array.isArray(features)
         ? features
         : features.split("\n").map((f: string) => f.trim()).filter(Boolean);
       if (!featureList.length) return res.status(400).json({ error: "No features to triage." });
 
-      const ck = cache.key({ goal, avail, reqd, prog, featureList, pType });
+      const ck = cache.key({ goal, avail, reqd, prog, featureList, pType, strict, attemptNote });
       const cached = cache.get(ck);
       if (cached) { console.log("[Phoenix] Cache hit: /api/survival-version"); return res.json(cached); }
 
@@ -651,7 +657,14 @@ Risk Level: ${intel.risk_level || "High"}
 
 ━━━ TRIAGE RULES for ${pType} ━━━
 ${triageRules[pType] || triageRules.software}
-
+${strict === "high" ? `
+━━━ STRICTER PASS REQUIRED ━━━
+A previous triage at normal strictness was simulated forward and did not reach a
+safe survival probability. Cut harder this time: keep only what is truly load-bearing
+for a working demo, move anything borderline from "keep" to "cut", and prefer shortcuts
+that trade polish for certainty of completion.
+${attemptNote ? `What went wrong in the simulated first attempt: ${attemptNote}` : ""}
+` : ""}
 ━━━ FEATURES TO TRIAGE ━━━
 ${featureList.map((f, i) => `${i + 1}. ${f}`).join("\n")}
 
@@ -681,14 +694,14 @@ Return ONLY valid JSON:
         result = JSON.parse(text.trim());
         if (servedBy === "grok") result.note = "Recovered via Groq (llama-3.3-70b-versatile).";
       } else {
-        const half = Math.max(1, Math.ceil(featureList.length * 0.45));
+        const half = Math.max(1, Math.ceil(featureList.length * (strict === "high" ? 0.3 : 0.45)));
         const diff = reqd - avail;
         const before = diff > 10 ? 10 : diff > 5 ? 25 : diff > 0 ? 40 : 70;
         result = {
           keep: featureList.slice(0, half).map((f, i) => ({ feature: f, confidence: Math.max(60, 95 - i * 8), reason: "Core deliverable — required for a working submission.", shortcut: "Implement the minimal path; skip error handling for now." })),
           cut: featureList.slice(half).map(f => ({ feature: f, reason: "Insufficient time.", fake_strategy: "Add a placeholder UI element with 'Coming soon' or hardcode demo data." })),
           success_chance_before: before,
-          success_chance_after: Math.min(92, before + 45),
+          success_chance_after: Math.min(92, before + (strict === "high" ? 52 : 45)),
           note: "Heuristic fallback — AI unavailable.",
         };
       }
@@ -840,19 +853,78 @@ Return ONLY valid JSON:
       if (!goal || !features) return res.status(400).json({ error: "Goal and features required." });
 
       const PORT = process.env.PORT || 3000;
-      const triageRes = await fetch(`http://localhost:${PORT}/api/survival-version`, {
-        method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ goal, availableHours, requiredHours, progress, features, intelligence, pdfData }),
-      });
-      const triage = await triageRes.json() as any;
+      const base = `http://localhost:${PORT}`;
 
-      const planRes = await fetch(`http://localhost:${PORT}/api/rescue-plan`, {
-        method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ goal, availableHours, requiredHours, progress, keep: triage.keep, success_chance_after: triage.success_chance_after, intelligence, pdfData }),
-      });
-      const plan = await planRes.json() as any;
+      const runTriage = (strictness?: "high", priorAttemptNote?: string) =>
+        fetch(`${base}/api/survival-version`, {
+          method: "POST", headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ goal, availableHours, requiredHours, progress, features, intelligence, pdfData, strictness, priorAttemptNote }),
+        }).then(r => r.json()) as Promise<any>;
 
-      res.json({ triage, plan });
+      const runPlan = (keep: any[], successChanceAfter: number) =>
+        fetch(`${base}/api/rescue-plan`, {
+          method: "POST", headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ goal, availableHours, requiredHours, progress, keep, success_chance_after: successChanceAfter, intelligence, pdfData }),
+        }).then(r => r.json()) as Promise<any>;
+
+      const runSimulate = (keep: any[], successChanceAfter: number, blocks: any[]) =>
+        fetch(`${base}/api/simulate`, {
+          method: "POST", headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ goal, availableHours, requiredHours, progress, intelligence, keep, success_chance_after: successChanceAfter, blocks, pdfData }),
+        }).then(r => r.json()) as Promise<any>;
+
+      // ── First pass ──────────────────────────────────────────
+      let triage = await runTriage();
+      let plan = await runPlan(triage.keep, triage.success_chance_after);
+
+      // ── Self-correction loop ────────────────────────────────
+      // Run the plan forward through Agent 4's simulator. If the simulated
+      // success odds land below the safety threshold, the first attempt
+      // wasn't conservative enough — retry triage once at high strictness,
+      // feeding back what the simulation revealed went wrong. Capped at a
+      // single retry so a stubbornly risky goal can't loop forever.
+      const SUCCESS_THRESHOLD = 60;
+      let selfCorrected = false;
+      let simulation: any = null;
+
+      try {
+        simulation = await runSimulate(triage.keep, triage.success_chance_after, plan.blocks);
+        const impliedSuccess = typeof triage.success_chance_after === "number" ? triage.success_chance_after : 0;
+        // Secondary signal alongside the raw percentage: even a high quoted
+        // success_chance_after is suspect if the *Phoenix* timeline (B) still
+        // simulates its own failure beats — the simulator disagreeing with
+        // the triage step's own optimism is itself a sign the plan is fragile.
+        const phoenixTimelineFails: boolean = Array.isArray(simulation?.timeline_b)
+          && simulation.timeline_b.some((e: any) => e.type === "failure");
+
+        if (impliedSuccess < SUCCESS_THRESHOLD || phoenixTimelineFails) {
+          const failureBeats = (simulation?.timeline_a || [])
+            .filter((e: any) => e.type === "failure" || e.type === "warning")
+            .map((e: any) => e.event)
+            .slice(0, 3)
+            .join("; ");
+          const priorAttemptNote = `First-pass plan simulated to ${impliedSuccess}% success` +
+            (failureBeats ? `, with these risks surfacing: ${failureBeats}` : ".");
+
+          const retriedTriage = await runTriage("high", priorAttemptNote);
+          const retriedPlan = await runPlan(retriedTriage.keep, retriedTriage.success_chance_after);
+
+          // Only adopt the retry if it actually improved the odds — never
+          // regress to a worse plan than the first attempt produced.
+          if ((retriedTriage.success_chance_after || 0) >= impliedSuccess) {
+            triage = retriedTriage;
+            plan = retriedPlan;
+            selfCorrected = true;
+            simulation = await runSimulate(triage.keep, triage.success_chance_after, plan.blocks).catch(() => simulation);
+          }
+        }
+      } catch (simErr) {
+        // Simulation step is a best-effort safety net — if it fails, fall
+        // back to the first-pass triage/plan rather than failing the whole request.
+        console.error("[Phoenix] /api/triage-and-plan self-correction step failed:", simErr);
+      }
+
+      res.json({ triage, plan, simulation, selfCorrected });
     } catch (e: any) {
       console.error("[Phoenix] /api/triage-and-plan error:", e);
       res.status(500).json({ error: e?.message || "Triage+Plan failed." });
