@@ -48,13 +48,15 @@ it asks *"What is the smallest version that still wins?"*
 
 - 🤖 **6 specialized AI agents** powered by Google Gemini
 - 🧠 **Multi-agent reasoning pipeline** — each agent feeds the next
+- 🔁 **Self-correcting plan loop** — Agent 4 simulates the first-pass plan; if it's too risky, triage automatically re-runs at stricter cuts
 - ☁️ **Google Cloud Run** deployment via AI Studio
 - 🔥 **Firebase** Firestore persistence + Authentication
 - 📄 **PDF spec understanding** — upload your brief, Gemini extracts requirements
 - 🎙️ **Voice input** via Web Speech API
 - 📅 **Google Calendar integration** — rescue blocks become timed events
 - ⚡ **AI provider failover** — never shows a blank screen
-- 🌐 **Three.js WebGL** ember field interface
+- 🌐 **Three.js WebGL** ember field interface + GSAP Crisis Spine
+- 🎨 **Glass-panel design system** — consistent premium UI across landing and app
 - 💾 **Offline fallback** — works even without Firebase
 
 ---
@@ -95,34 +97,38 @@ User Input
 │  Crisis Diagnostics │  → project type, risk score, failure causes
 └──────────┬──────────┘
            │
-    ▼
+           ▼
 ┌─────────────────────┐
 │  Agent 2            │  Cut ruthlessly
 │  Survival Version   │  → keep[], cut[], survival probability
 │  Generator          │
 └──────────┬──────────┘
-           │
-    ▼
+           │ (runs in parallel with Agent 3)
+           ▼
 ┌─────────────────────┐
 │  Agent 3            │  Plan precisely
 │  Rescue Planner     │  → hour-by-hour blocks, critical path
 └──────────┬──────────┘
            │
-    ▼
+           ▼
 ┌─────────────────────┐
 │  Agent 4            │  See both futures
 │  Parallel Futures   │  → timeline A (failure) vs B (success)
+│  + Self-Correction  │  → if odds dip below threshold, re-runs
+│                     │     Agent 2+3 once at stricter cuts
 └──────────┬──────────┘
            │
-    ▼
-┌─────────────────────────────────────┐
-│  Agent 5: Crisis Coach              │  On-demand motivation
-│  Agent 6: Team Notification         │  Slack/Email drafts
-└─────────────────────────────────────┘
+           ▼
+┌───────────────────────────────────────┐
+│  Agent 5: Crisis Coach                │  On-demand motivation
+│  Agent 6: Team Notification           │  Slack/Email drafts
+└───────────────────────────────────────┘
            │
-    ▼
+           ▼
 Calendar Sync · Live Tracker · Export · Share
 ```
+
+**Self-correction loop:** Agents 2 and 3 fire together behind a single `/api/triage-and-plan` call. Their output is immediately run through Agent 4's simulator — if the implied success odds land below 60%, or Phoenix's own "winning" timeline still simulates a failure beat, triage automatically retries once at high strictness, fed the specific risks the simulation surfaced. The retry is only kept if it actually improves on the first attempt, so a stubbornly risky goal can't loop or regress.
 
 ---
 
@@ -154,6 +160,7 @@ Each agent performs a single task before passing structured output to the next.
 - Explainable decisions — users see each agent's reasoning
 - Reusable components — agents can be called independently
 - Easier debugging — failures are isolated to one agent
+- Self-correcting — Agent 4's simulation can trigger a stricter automatic retry of Agents 2+3
 
 ---
 
@@ -163,7 +170,7 @@ Each agent performs a single task before passing structured output to the next.
 - **Agent 1 — Crisis Diagnostics:** Classifies project type (software/research/pitch/exam/etc.), scores 5 risk dimensions (Time, Scope, Complexity, Dependency, Execution), identifies top failure causes
 - **Agent 2 — Survival Version Generator:** Triages feature list into Keep vs Cut with confidence scores and implementation shortcuts for each kept feature
 - **Agent 3 — Rescue Planner:** Hour-by-hour execution blocks with risk tags (critical path / high risk / normal / buffer), specific enough to start immediately
-- **Agent 4 — Parallel Futures:** Simulates two timelines — original plan leading to failure vs Phoenix plan leading to success — with real narrative events
+- **Agent 4 — Parallel Futures:** Simulates two timelines — original plan leading to failure vs Phoenix plan leading to success — with real narrative events, and triggers an automatic stricter re-triage if the Phoenix timeline itself simulates poorly
 - **Agent 5 — Crisis Coach:** Personalized motivation referencing your actual goal, hours, and odds. No hollow clichés.
 - **Agent 6 — Team Notification:** Drafts a Slack message or professional email explaining the delay and rescue plan to teammates
 
@@ -187,6 +194,9 @@ Check off blocks as you complete them. Progress persists via Firebase Firestore 
 ### 💾 Session Persistence
 Your rescue plan survives page refreshes. 48-hour cache via localStorage.
 
+### 🎨 Glass Design System
+A shared glass/blur visual language (`.phoenix-card`, `.widget-panel`, `.glass-tile`, etc., defined in `index.css`) runs through the landing page, the main app shell, and every agent widget — so the premium look isn't limited to the hero.
+
 ---
 
 ## Reliability
@@ -194,7 +204,7 @@ Your rescue plan survives page refreshes. 48-hour cache via localStorage.
 Phoenix **never returns a blank screen** — even if every AI provider becomes unavailable.
 
 ```
-Gemini 2.5 Flash
+Gemini 2.5 Flash  (+ optional 2nd key for burst capacity)
       ↓
 Gemini 2.0 Flash
       ↓
@@ -208,9 +218,10 @@ Heuristic Engine
 ```
 
 Additional resilience features:
-- **Circuit breaker** — quota-blocked models are skipped instantly, not retried
-- **LRU response cache** (50 entries, 30-min TTL) — repeated demo runs return sub-10ms cached responses
-- **Two Gemini API keys** supported for burst capacity
+- **Circuit breaker** — a 429 blocks a model for 90s, a 503 for 20s; blocked models are skipped instantly rather than retried and timed out
+- **LRU response cache** (50 entries, 30-min TTL) — repeated demo runs return sub-10ms cached responses; `DELETE /api/cache` flushes it before a fresh run
+- **Two Gemini API keys** supported (`GEMINI_API_KEY`, `GEMINI_API_KEY_2`) for burst capacity — both are tried on every model tier before falling through to the next
+- **`GET /api/diag`** — shows live per-model quota/block status, useful for judges or debugging mid-demo
 
 ---
 
@@ -232,7 +243,7 @@ Additional resilience features:
 ### Google Cloud & Firebase
 - **Google Cloud Run** — production deployment (via AI Studio)
 - **Firebase Firestore** — checklist persistence
-- **Firebase Authentication** — anonymous user sessions
+- **Firebase Authentication** — Google sign-in for cross-device session sync, with anonymous/local fallback
 - **Google Calendar API** — OAuth 2.0 event creation with per-type color coding
 
 ---
@@ -249,13 +260,16 @@ Additional resilience features:
 ┌──────────────────▼──────────────────────────┐
 │           Express Server (Node 20)          │
 │                                             │
-│  /api/diagnose        → Agent 1             │
+│  /api/diagnose         → Agent 1            │
 │  /api/survival-version → Agent 2            │
-│  /api/rescue-plan     → Agent 3             │
-│  /api/simulate        → Agent 4             │
-│  /api/motivate        → Agent 5             │
-│  /api/team-notify     → Agent 6             │
-│  /api/calendar/*      → Google Calendar     │
+│  /api/rescue-plan      → Agent 3            │
+│  /api/triage-and-plan  → Agents 2+3 + self- │
+│                          correction (Agent 4)│
+│  /api/simulate         → Agent 4            │
+│  /api/motivate         → Agent 5            │
+│  /api/team-notify      → Agent 6            │
+│  /api/calendar/*       → Google Calendar    │
+│  /api/diag, /api/cache → diagnostics        │
 │                                             │
 │  LRU Cache · Circuit Breaker · Fallbacks    │
 └──────────────────┬──────────────────────────┘
@@ -279,7 +293,8 @@ npm install
 Create `.env`:
 ```env
 GEMINI_API_KEY=your_key_here
-GROQ_API_KEY=your_key_here        # optional
+GEMINI_API_KEY_2=your_second_key_here  # optional — burst capacity
+GROQ_API_KEY=your_key_here             # optional
 SESSION_SECRET=any_random_string
 
 # Google Calendar (optional)
@@ -296,6 +311,8 @@ VITE_FIREBASE_MESSAGING_SENDER_ID=...
 VITE_FIREBASE_APP_ID=...
 ```
 
+> **Note:** Firebase Authentication's "Sign in to sync" requires the app's domain to be listed under **Firebase Console → Authentication → Settings → Authorized domains**. `localhost` is whitelisted automatically; any other deploy/preview domain needs to be added manually, or sign-in will fail with `auth/unauthorized-domain`.
+
 ```bash
 npm run dev
 # → http://localhost:3000
@@ -310,16 +327,19 @@ phoenix/
 ├── src/
 │   ├── App.tsx                 # Agent orchestration + state
 │   ├── LandingPage.tsx         # Hero with WebGL ember field
+│   ├── DesignSystem.tsx        # Shared glass/gradient design tokens + primitives
+│   ├── SimulationViz.tsx       # Agent 4 WebGL diverging-timeline centerpiece
+│   ├── CrisisSpine.tsx         # GSAP pipeline-connector visualizer
 │   ├── AIMotivator.tsx         # Agent 5 UI
 │   ├── CalendarSync.tsx        # Google Calendar OAuth + sync
 │   ├── ChecklistTracker.tsx    # Live execution tracker
-│   ├── CrisisSpine.tsx         # GSAP pipeline visualizer
 │   ├── EmberField.ts           # Three.js WebGL particles
 │   ├── ExportPanel.tsx         # Export UI
 │   ├── Teamnotify.tsx          # Agent 6 UI
 │   ├── VoiceInput.tsx          # Web Speech API
 │   ├── firebaseConfig.ts       # Firebase init + fallback
-│   └── sessionStore.ts         # Session persistence
+│   ├── sessionStore.ts         # Session persistence
+│   └── index.css               # Tailwind v4 theme + glass design system
 ├── server.ts                   # Express + all 6 agents
 ├── Dockerfile                  # Cloud Run container
 └── package.json
