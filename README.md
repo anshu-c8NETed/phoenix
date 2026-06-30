@@ -334,14 +334,15 @@ phoenix/
 │   ├── CalendarSync.tsx        # Google Calendar OAuth + sync
 │   ├── ChecklistTracker.tsx    # Live execution tracker
 │   ├── EmberField.ts           # Three.js WebGL particles
+│   ├── EmberFieldBackdrop.tsx  # Three.js WebGL particles
 │   ├── ExportPanel.tsx         # Export UI
 │   ├── Teamnotify.tsx          # Agent 6 UI
 │   ├── VoiceInput.tsx          # Web Speech API
 │   ├── firebaseConfig.ts       # Firebase init + fallback
 │   ├── sessionStore.ts         # Session persistence
 │   └── index.css               # Tailwind v4 theme + glass design system
+│   ├── Footer.tsx              # Footer with nav links(github and portfolio)
 ├── server.ts                   # Express + all 6 agents
-├── Dockerfile                  # Cloud Run container
 └── package.json
 ```
 
